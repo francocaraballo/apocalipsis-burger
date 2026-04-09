@@ -54,7 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getTotal = useCallback(() => {
     return items.reduce(
-      (acc, { product, quantity }) => acc + product.price * quantity,
+      (acc, { product, quantity }) => acc + (product.price ?? 0) * quantity,
       0
     );
   }, [items]);

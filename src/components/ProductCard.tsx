@@ -9,10 +9,10 @@ interface ProductCardProps {
 }
 
 const SIZE_OPTIONS = [
-  { label: 'Simple', extraPrice: 0 },
-  { label: 'Doble', extraPrice: 1500 },
-  { label: 'Triple', extraPrice: 2800 },
-];
+  { label: 'Simple', key: 'simple' },
+  { label: 'Doble', key: 'double' },
+  { label: 'Triple', key: 'triple' },
+] as const;
 
 const BADGE_CONFIG: Partial<Record<Product['category'], { label: string; bg: string; color: string }>> = {
   premium: { label: 'MÁS VENDIDO', bg: '#ff5625', color: '#fff' },
@@ -28,13 +28,15 @@ export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
 
   const badge = BADGE_CONFIG[product.category];
   const sizeOption = SIZE_OPTIONS[selectedSize];
-  const finalPrice = product.price + sizeOption.extraPrice;
+  const finalPrice = product.prices 
+    ? product.prices[sizeOption.key] 
+    : (product.price ?? 0);
 
   function handleAdd() {
     addItem({
       ...product,
-      price: finalPrice,
-      name: selectedSize > 0 ? `${product.name} — ${sizeOption.label}` : product.name,
+      price: finalPrice, // Override price with final price in cart
+      name: product.prices && selectedSize > 0 ? `${product.name} — ${sizeOption.label}` : product.name,
     });
     onAddedToCart?.();
   }
@@ -129,50 +131,47 @@ export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
           aria-label={`Precio: ${finalPrice.toLocaleString('es-AR')} pesos`}
         >
           ${finalPrice.toLocaleString('es-AR')}
-          {selectedSize > 0 && (
-            <span className="text-xs font-normal ml-1" style={{ color: 'var(--color-on-surface-variant)' }}>
-              +${sizeOption.extraPrice.toLocaleString('es-AR')}
-            </span>
-          )}
         </p>
 
         {/* Selector de tamaño */}
-        <div className="mb-3">
-          <label
-            htmlFor={`size-select-${product.id}`}
-            className="block text-xs uppercase tracking-wider mb-1.5"
-            style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
-          >
-            Elegí el tipo de carne
-          </label>
-          <div className="relative">
-            <select
-              id={`size-select-${product.id}`}
-              value={selectedSize}
-              onChange={(e) => setSelectedSize(Number(e.target.value))}
-              className="w-full px-3 py-2.5 text-sm appearance-none cursor-pointer outline-none"
-              style={{
-                background: 'var(--color-surface-container-high)',
-                color: 'var(--color-on-surface)',
-                border: '1px solid rgba(255,160,0,0.25)',
-                borderRadius: '4px',
-                fontFamily: 'var(--font-body)',
-              }}
+        {product.prices && (
+          <div className="mb-3">
+            <label
+              htmlFor={`size-select-${product.id}`}
+              className="block text-xs uppercase tracking-wider mb-1.5"
+              style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
             >
-              {SIZE_OPTIONS.map((opt, i) => (
-                <option key={i} value={i}>
-                  {opt.label}{opt.extraPrice > 0 ? ` — +$${opt.extraPrice.toLocaleString('es-AR')}` : ''}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-              style={{ color: 'var(--color-primary)' }}
-              aria-hidden="true"
-            />
+              Elegí el tipo de carne
+            </label>
+            <div className="relative">
+              <select
+                id={`size-select-${product.id}`}
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(Number(e.target.value))}
+                className="w-full px-3 py-2.5 text-sm appearance-none cursor-pointer outline-none"
+                style={{
+                  background: 'var(--color-surface-container-high)',
+                  color: 'var(--color-on-surface)',
+                  border: '1px solid rgba(255,160,0,0.25)',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                {SIZE_OPTIONS.map((opt, i) => (
+                  <option key={i} value={i}>
+                    {opt.label} — ${product.prices![opt.key].toLocaleString('es-AR')}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--color-primary)' }}
+                aria-hidden="true"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Botón agregar */}
         <button
