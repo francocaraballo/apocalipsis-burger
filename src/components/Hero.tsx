@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import heroBg from '../assets/hero.png';
+import heroBg from '../assets/logo.png';
 
 interface HeroProps {
   onViewMenu: () => void;
@@ -12,7 +12,7 @@ export function Hero({ onViewMenu }: HeroProps) {
       id="hero"
       className="relative flex flex-col items-center justify-center text-center px-4 overflow-hidden"
       style={{
-        minHeight: '70vh',
+        minHeight: 'calc(100vh - 56px)',
         backgroundColor: '#000',
       }}
       aria-label="Hero principal"

@@ -14,11 +14,14 @@ export function CatalogPage({ onCartOpen }: CatalogPageProps) {
   const catalogRef = useRef<HTMLDivElement>(null);
 
   function scrollToCatalog() {
-    catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!catalogRef.current) return;
+    const navbarHeight = 56;
+    const top = catalogRef.current.getBoundingClientRect().top + window.scrollY - navbarHeight;
+    window.scrollTo({ top, behavior: 'smooth' });
   }
 
   return (
-    <main className="pb-nav" style={{ paddingTop: '56px' }}>
+    <main style={{ paddingTop: '56px' }}>
       <Hero onViewMenu={scrollToCatalog} onOpenCart={onCartOpen} />
       <div ref={catalogRef}>
         <ProductGrid products={products} onAddedToCart={onCartOpen} />

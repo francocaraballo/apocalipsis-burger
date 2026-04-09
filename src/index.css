@@ -77,7 +77,14 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* ── Bottom nav safe area ── */
-.pb-nav {
-  padding-bottom: 72px;
+/* ── Navbar logo ── */
+.navbar-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(255, 160, 0, 0.3));
+  transition: filter 0.2s ease;
+}
+.navbar-logo:hover {
+  filter: drop-shadow(0 0 10px rgba(255, 160, 0, 0.5));
 }

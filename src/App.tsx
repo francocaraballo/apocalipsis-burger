@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
-import { Navbar, BottomNav } from './components/Navbar';
+import { Navbar } from './components/Navbar';
 import { Cart } from './components/Cart';
 import { CatalogPage } from './pages/CatalogPage';
 import { AdminPage } from './pages/AdminPage';
@@ -18,8 +18,6 @@ function AppLayout() {
         <Route path="/" element={<CatalogPage onCartOpen={() => setIsCartOpen(true)} />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
-
-      <BottomNav onCartOpen={() => setIsCartOpen(true)} />
     </>
   );
 }
