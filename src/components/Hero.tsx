@@ -1,4 +1,5 @@
 import { ChevronDown } from 'lucide-react';
+import heroBg from '../assets/hero.png';
 
 interface HeroProps {
   onViewMenu: () => void;
@@ -9,24 +10,36 @@ export function Hero({ onViewMenu }: HeroProps) {
   return (
     <section
       id="hero"
-      className="relative flex flex-col items-center justify-center text-center px-4"
+      className="relative flex flex-col items-center justify-center text-center px-4 overflow-hidden"
       style={{
         minHeight: '70vh',
-        background: 'linear-gradient(180deg, rgba(255,100,0,0.08) 0%, transparent 60%)',
+        backgroundColor: '#000',
       }}
       aria-label="Hero principal"
     >
-      {/* Ambient glow */}
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `url(${heroBg})`,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          opacity: 0.6,
+        }}
+      />
+
+      {/* Ambient glow / Dark gradient overlay */}
       <div
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 50% 30%, rgba(255,160,0,0.1) 0%, transparent 70%)',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%)',
         }}
       />
 
       {/* Content */}
-      <div className="relative z-10 max-w-sm mx-auto">
+      <div className="relative z-10 max-w-sm mx-auto" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
         {/* Logo / eyebrow */}
         <p
           className="text-xs uppercase tracking-[0.2em] font-bold mb-6"
