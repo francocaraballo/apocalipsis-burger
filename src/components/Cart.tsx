@@ -1,6 +1,10 @@
-import { ShoppingCart, Plus, Minus, Trash2, MessageCircle, ShoppingBag } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Minus, Trash2, MessageCircle, ShoppingBag, MapPin, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { sendWhatsAppOrder } from '../lib/whatsapp';
+import envioData from '../data/envio.json';
+
+type DeliveryMethod = 'delivery' | 'takeaway';
 
 interface CartProps {
   isOpen: boolean;
@@ -9,14 +13,28 @@ interface CartProps {
 
 export function Cart({ isOpen, onClose }: CartProps) {
   const { items, removeItem, updateQuantity, getTotal } = useCart();
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('takeaway');
+  const [address, setAddress] = useState('');
+
   const subtotal = getTotal();
-  const envio = items.length > 0 ? 1000 : 0;
+  const envio = deliveryMethod === 'delivery' && items.length > 0 ? envioData.costoEnvio : 0;
   const total = subtotal + envio;
 
   function handleSendOrder() {
     if (items.length === 0) return;
-    sendWhatsAppOrder(items);
+    if (deliveryMethod === 'delivery' && !address.trim()) return;
+
+    const deliveryInfo =
+      deliveryMethod === 'takeaway'
+        ? { method: 'takeaway' as const, address: 'Lavaisse 4050' }
+        : { method: 'delivery' as const, address: address.trim() };
+
+    sendWhatsAppOrder(items, deliveryInfo);
   }
+
+  const canOrder =
+    items.length > 0 &&
+    (deliveryMethod === 'takeaway' || address.trim().length > 0);
 
   return (
     <>
@@ -200,12 +218,109 @@ export function Cart({ isOpen, onClose }: CartProps) {
           )}
         </div>
 
-        {/* Footer: resumen + botón */}
+        {/* Footer: entrega + resumen + botón */}
         {items.length > 0 && (
           <div
             className="px-4 py-4"
             style={{ borderTop: '1px solid rgba(255,160,0,0.15)' }}
           >
+            {/* ── Método de entrega ── */}
+            <div className="mb-4">
+              <label
+                htmlFor="delivery-method-select"
+                className="block text-xs uppercase tracking-wider mb-1.5 font-semibold"
+                style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
+              >
+                Método de entrega
+              </label>
+              <div className="relative">
+                <select
+                  id="delivery-method-select"
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e.target.value as DeliveryMethod)}
+                  className="w-full px-3 py-2.5 text-sm appearance-none cursor-pointer outline-none"
+                  style={{
+                    background: 'var(--color-surface-container-high)',
+                    color: 'var(--color-on-surface)',
+                    border: '1px solid rgba(255,160,0,0.25)',
+                    borderRadius: '4px',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  <option value="takeaway">🏪 Retiro en local (Take Away)</option>
+                  <option value="delivery">🛵 Envío a domicilio</option>
+                </select>
+                <ChevronDown
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{ color: 'var(--color-primary)' }}
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+
+            {/* ── Contenido condicional según método ── */}
+            {deliveryMethod === 'takeaway' ? (
+              <div
+                className="flex items-center gap-2.5 px-3 py-3 mb-4"
+                style={{
+                  background: 'var(--color-surface-container-high)',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,160,0,0.12)',
+                }}
+              >
+                <MapPin
+                  size={18}
+                  style={{ color: 'var(--color-primary)', flexShrink: 0 }}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p
+                    className="text-xs uppercase tracking-wider font-semibold mb-0.5"
+                    style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
+                  >
+                    Retirá tu pedido en
+                  </p>
+                  <p
+                    className="text-sm font-bold"
+                    style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-display)' }}
+                  >
+                    Lavaisse 4050
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <label
+                  htmlFor="delivery-address-input"
+                  className="block text-xs uppercase tracking-wider mb-1.5 font-semibold"
+                  style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
+                >
+                  Dirección de envío
+                </label>
+                <input
+                  id="delivery-address-input"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Ej: San Martín 1234, piso 2"
+                  className="w-full px-3 py-2.5 text-sm outline-none transition-colors"
+                  style={{
+                    background: 'var(--color-surface-container-high)',
+                    color: 'var(--color-on-surface)',
+                    border: `1px solid ${deliveryMethod === 'delivery' && !address.trim() ? 'rgba(255,80,80,0.5)' : 'rgba(255,160,0,0.25)'}`,
+                    borderRadius: '4px',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                />
+                {deliveryMethod === 'delivery' && !address.trim() && (
+                  <p className="text-xs mt-1" style={{ color: 'rgba(255,80,80,0.8)' }}>
+                    Ingresá tu dirección para continuar
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Desglose */}
             <div className="flex flex-col gap-1.5 mb-4">
               <div className="flex justify-between text-sm">
@@ -217,7 +332,11 @@ export function Cart({ isOpen, onClose }: CartProps) {
               <div className="flex justify-between text-sm">
                 <span style={{ color: 'var(--color-on-surface-variant)' }}>ENVÍO</span>
                 <span style={{ color: 'var(--color-on-surface)', fontFamily: 'var(--font-display)' }}>
-                  ${envio.toLocaleString('es-AR')}
+                  {deliveryMethod === 'takeaway' ? (
+                    <span style={{ color: 'var(--color-primary)' }}>GRATIS</span>
+                  ) : (
+                    `$${envio.toLocaleString('es-AR')}`
+                  )}
                 </span>
               </div>
               <div className="flex justify-between items-center mt-1">
@@ -241,7 +360,8 @@ export function Cart({ isOpen, onClose }: CartProps) {
             <button
               id="send-whatsapp-order-btn"
               onClick={handleSendOrder}
-              className="w-full flex items-center justify-center gap-2 py-4 font-bold uppercase tracking-wider text-base transition-all duration-200 hover:brightness-110 active:scale-[0.99] cursor-pointer"
+              disabled={!canOrder}
+              className="w-full flex items-center justify-center gap-2 py-4 font-bold uppercase tracking-wider text-base transition-all duration-200 hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 fontFamily: 'var(--font-display)',
                 background: 'var(--color-primary)',
