@@ -14,20 +14,18 @@ const SIZE_OPTIONS = [
   { label: 'Triple', key: 'triple' },
 ] as const;
 
-const BADGE_CONFIG: Partial<Record<Product['category'], { label: string; bg: string; color: string }>> = {
-  premium: { label: 'MÁS VENDIDO', bg: '#ff5625', color: '#fff' },
-  veggie: { label: 'VEGGIE', bg: '#2d6a4f', color: '#fff' },
-  extras: { label: 'EXTRAS', bg: '#ffa000', color: '#1a0e00' },
-};
-
 export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
   const { addItem, items } = useCart();
   const [selectedSize, setSelectedSize] = useState(0);
-  const cartItem = items.find((i) => i.product.id === product.id);
-  const inCart = (cartItem?.quantity ?? 0) > 0;
-
-  const badge = BADGE_CONFIG[product.category];
   const sizeOption = SIZE_OPTIONS[selectedSize];
+
+  const cartItemQuantity = items.reduce((acc, i) => {
+    if (i.product.id === product.id || i.product.id.startsWith(`${product.id}-`)) {
+      return acc + i.quantity;
+    }
+    return acc;
+  }, 0);
+  const inCart = cartItemQuantity > 0;
   const finalPrice = product.prices 
     ? product.prices[sizeOption.key] 
     : (product.price ?? 0);
@@ -35,6 +33,7 @@ export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
   function handleAdd() {
     addItem({
       ...product,
+      id: product.prices ? `${product.id}-${sizeOption.key}` : product.id,
       price: finalPrice, // Override price with final price in cart
       name: product.prices && selectedSize > 0 ? `${product.name} — ${sizeOption.label}` : product.name,
     });
@@ -66,22 +65,6 @@ export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
           aria-hidden="true"
         />
 
-        {/* Badge categoría */}
-        {badge && (
-          <span
-            className="absolute top-3 right-3 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider"
-            style={{
-              background: badge.bg,
-              color: badge.color,
-              borderRadius: '2px',
-              fontFamily: 'var(--font-display)',
-              letterSpacing: '0.06em',
-            }}
-          >
-            {badge.label}
-          </span>
-        )}
-
         {/* Badge en carrito */}
         {inCart && (
           <span
@@ -91,9 +74,9 @@ export function ProductCard({ product, onAddedToCart }: ProductCardProps) {
               color: 'var(--color-on-primary)',
               fontFamily: 'var(--font-display)',
             }}
-            aria-label={`${cartItem!.quantity} en el carrito`}
+            aria-label={`${cartItemQuantity} en el carrito`}
           >
-            {cartItem!.quantity}
+            {cartItemQuantity}
           </span>
         )}
       </div>
