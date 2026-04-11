@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Product, ProductCategory } from '../types';
 import { ProductCard } from './ProductCard';
 
@@ -16,6 +17,8 @@ const SECTION_LABELS: Record<ProductCategory, string> = {
 const CATEGORY_ORDER: ProductCategory[] = ['premium', 'clasicas', 'veggie', 'extras'];
 
 export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
+  const [activeCategory, setActiveCategory] = useState<ProductCategory | null>(null);
+
   // Agrupar productos por categoría
   const grouped = CATEGORY_ORDER.reduce<Record<ProductCategory, Product[]>>(
     (acc, cat) => {
@@ -24,6 +27,14 @@ export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
     },
     { premium: [], clasicas: [], veggie: [], extras: [] }
   );
+
+  // Categorías que tienen al menos un producto disponible
+  const availableCategories = CATEGORY_ORDER.filter((cat) => grouped[cat].length > 0);
+
+  // Categorías a renderizar según el filtro activo
+  const categoriesToRender = activeCategory
+    ? availableCategories.filter((cat) => cat === activeCategory)
+    : availableCategories;
 
   return (
     <section id="catalogo" aria-label="Catálogo de productos">
@@ -49,11 +60,58 @@ export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
         </h2>
       </div>
 
-      {/* Lista vertical de productos —  una columna, como en Stitch */}
+      {/* Filtros de categoría */}
+      <div
+        className="flex gap-2 px-4 pb-4 overflow-x-auto"
+        style={{ scrollbarWidth: 'none' }}
+        role="tablist"
+        aria-label="Filtrar por categoría"
+      >
+        {/* Botón "Todas" */}
+        <button
+          role="tab"
+          aria-selected={activeCategory === null}
+          onClick={() => setActiveCategory(null)}
+          className="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer"
+          style={{
+            fontFamily: 'var(--font-display)',
+            letterSpacing: '0.08em',
+            borderRadius: '4px',
+            border: '1px solid',
+            borderColor: activeCategory === null ? 'var(--color-primary)' : 'var(--color-outline-variant)',
+            background: activeCategory === null ? 'var(--color-primary)' : 'transparent',
+            color: activeCategory === null ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)',
+          }}
+        >
+          Todas
+        </button>
+
+        {availableCategories.map((cat) => (
+          <button
+            key={cat}
+            role="tab"
+            aria-selected={activeCategory === cat}
+            onClick={() => setActiveCategory(cat)}
+            className="flex-shrink-0 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all duration-150 cursor-pointer"
+            style={{
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '0.08em',
+              borderRadius: '4px',
+              border: '1px solid',
+              borderColor: activeCategory === cat ? 'var(--color-primary)' : 'var(--color-outline-variant)',
+              background: activeCategory === cat ? 'var(--color-primary)' : 'transparent',
+              color: activeCategory === cat ? 'var(--color-on-primary)' : 'var(--color-on-surface-variant)',
+            }}
+          >
+            {SECTION_LABELS[cat]}
+          </button>
+        ))}
+      </div>
+
+      {/* Lista vertical de productos */}
       <div className="flex flex-col">
-        {CATEGORY_ORDER.map((cat) => {
+        {categoriesToRender.map((cat) => {
           const catProducts = grouped[cat];
-          if (catProducts.length === 0) return null;
 
           return (
             <div key={cat}>
@@ -94,3 +152,4 @@ export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
     </section>
   );
 }
+

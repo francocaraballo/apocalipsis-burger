@@ -1,74 +1,38 @@
 [
   {
     "id": "1",
-    "name": "La Condena",
-    "description": "Doble medallón angus 150g, cheddar ahumado, panceta crocante, cebolla caramelizada, salsa BBQ infernal.",
+    "name": "La Perdicion",
+    "description": "Pan de papa, blend de carne (120 g), doble cheddar, kétchup, mostaza, cebolla caramelizada. Incluye papas",
     "prices": { "simple": 3000, "double": 4500, "triple": 7000 },
-    "image": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=580&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "image": "https://i.ibb.co/dsqS2bTm/la-perdicion.jpg",
     "category": "clasicas",
     "available": true
   },
   {
     "id": "2",
-    "name": "El Juicio Final",
-    "description": "Triple medallón angus 120g, tres quesos fundidos, bacon ahumado, pepinillos, salsa especial apocalipsis.",
+    "name": "Juicio Final",
+    "description": "Pan de papa, blend de carne (120 g), queso azul, cebolla morada. Incluye papas",
     "prices": { "simple": 3500, "double": 5000, "triple": 7500 },
-    "image": "https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?q=80&w=815&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "image": "https://i.ibb.co/PvdXyDTf/juicio-final.jpg",
     "category": "premium",
     "available": true
   },
   {
     "id": "3",
-    "name": "La Perdición",
-    "description": "Medallón angus 200g, queso azul, rúcula, tomate seco, mayonesa de trufa.",
+    "name": "Apocalipsis",
+    "description": "Pan de papa, blend de carne (120 g), doble cheddar, bacon, barbacoa. Incluye papas",
     "prices": { "simple": 3200, "double": 4800, "triple": 7200 },
-    "image": "https://images.unsplash.com/photo-1549611016-3a70d82b5040?q=80&w=830&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "image": "https://i.ibb.co/1tNkmzcs/apocalipsis.jpg",
     "category": "premium",
     "available": true
   },
   {
     "id": "4",
-    "name": "La Expiación",
-    "description": "Medallón de lentejas y garbanzo, queso vegano, palta, tomate, lechuga, aderezo de limón.",
+    "name": "Nuclear Bacon",
+    "description": "Pan de papa, blend de carne (120 g), doble cheddar, bacon xxl, barbacoa, bomba de cheddar. Incluye papas",
     "prices": { "simple": 2800, "double": 4200, "triple": 6500 },
-    "image": "https://images.unsplash.com/photo-1565299507177-b0ac66763828?q=80&w=422&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "category": "veggie",
-    "available": true
-  },
-  {
-    "id": "5",
-    "name": "La Veggie",
-    "description": "Hamburguesa clásica angus, mozzarella, tomate, lechuga fresca, mostaza y mayonesa casera.",
-    "prices": { "simple": 2500, "double": 3800, "triple": 6000 },
-    "image": "https://images.unsplash.com/photo-1626414375186-12406f7e95f1?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "category": "veggie",
-    "available": true
-  },
-  {
-    "id": "6",
-    "name": "Papas Fritas",
-    "description": "Papas fritas crocantes.",
-    "price": 6500,
-    "image": "https://plus.unsplash.com/premium_photo-1672774750509-bc9ff226f3e8?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "category": "extras",
-    "available": true
-  },
-  {
-    "id": "7",
-    "name": "Papas con Cheddar",
-    "description": "Papas fritas con cheddar.",
-    "price": 5200,
-    "image": "https://images.unsplash.com/photo-1644447350146-e55d21d86e8b?q=80&w=387&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "category": "extras",
-    "available": true
-  },
-  {
-    "id": "8",
-    "name": "Papas con Cheddar y Bacon",
-    "description": "Papas fritas con cheddar y bacon.",
-    "price": 8500,
-    "image": "https://images.unsplash.com/photo-1644447327423-a6a795e543c4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    "category": "extras",
+    "image": "https://i.ibb.co/Y7zjkzdw/nuclear-bacon.jpg",
+    "category": "premium",
     "available": true
   }
 ]
