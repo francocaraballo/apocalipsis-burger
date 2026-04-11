@@ -88,3 +88,42 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-logo:hover {
   filter: drop-shadow(0 0 10px rgba(255, 160, 0, 0.5));
 }
+
+/* ── Number input: hide spinners ── */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ── Desktop: Product Grid ── */
+@media (min-width: 768px) {
+  .product-grid-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .product-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+
+  .product-grid-container > article {
+    max-width: 400px;
+    border-radius: 8px;
+    border-bottom: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .product-grid-container > article:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(255, 160, 0, 0.15);
+  }
+}

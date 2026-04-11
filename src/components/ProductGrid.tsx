@@ -37,7 +37,7 @@ export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
     : availableCategories;
 
   return (
-    <section id="catalogo" aria-label="Catálogo de productos">
+    <section id="catalogo" aria-label="Catálogo de productos" className="product-grid-section">
       {/* Header de sección */}
       <div className="px-4 pt-6 pb-4">
         <p
@@ -137,14 +137,16 @@ export function ProductGrid({ products, onAddedToCart }: ProductGridProps) {
                 </span>
               </div>
 
-              {/* Cards en columna */}
-              {catProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddedToCart={onAddedToCart}
-                />
-              ))}
+              {/* Cards — grid en desktop, columna en mobile */}
+              <div className="product-grid-container">
+                {catProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddedToCart={onAddedToCart}
+                  />
+                ))}
+              </div>
             </div>
           );
         })}
