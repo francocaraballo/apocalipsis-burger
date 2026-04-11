@@ -8,7 +8,7 @@ export interface DeliveryInfo {
   address: string;
 }
 
-export function formatOrderForWhatsApp(items: CartItem[], delivery: DeliveryInfo): string {
+export function formatOrderForWhatsApp(items: CartItem[], delivery: DeliveryInfo, notes?: string): string {
   if (items.length === 0) return '';
 
   const header = '🔥 *PEDIDO — APOCALIPSIS BURGER* 🔥\n\n';
@@ -28,18 +28,20 @@ export function formatOrderForWhatsApp(items: CartItem[], delivery: DeliveryInfo
   const envio = delivery.method === 'delivery' ? envioData.costoEnvio : 0;
   const total = subtotal + envio;
 
+  const notesLine = notes?.trim() ? `\n\n📝 *NOTAS:* ${notes.trim()}` : '';
+
   const deliveryLine =
     delivery.method === 'takeaway'
       ? '\n\n🏪 *RETIRO EN LOCAL* — Lavaisse 4050'
       : `\n\n🛵 *ENVÍO A DOMICILIO*\n📍 ${delivery.address}`;
 
-  const footer = `${deliveryLine}\n\n💰 *SUBTOTAL: $${subtotal.toLocaleString('es-AR')}*\n🚚 *ENVÍO: ${delivery.method === 'takeaway' ? 'GRATIS' : `$${envio.toLocaleString('es-AR')}`}*\n💰 *TOTAL: $${total.toLocaleString('es-AR')}*\n\nPor favor confirmar disponibilidad. ¡Gracias! 🍔`;
+  const footer = `${notesLine}${deliveryLine}\n\n💰 *SUBTOTAL: $${subtotal.toLocaleString('es-AR')}*\n🚚 *ENVÍO: ${delivery.method === 'takeaway' ? 'GRATIS' : `$${envio.toLocaleString('es-AR')}`}*\n💰 *TOTAL: $${total.toLocaleString('es-AR')}*\n\nPor favor confirmar disponibilidad. ¡Gracias! 🍔`;
 
   return `${header}${itemLines}${footer}`;
 }
 
-export function sendWhatsAppOrder(items: CartItem[], delivery: DeliveryInfo): void {
-  const message = formatOrderForWhatsApp(items, delivery);
+export function sendWhatsAppOrder(items: CartItem[], delivery: DeliveryInfo, notes?: string): void {
+  const message = formatOrderForWhatsApp(items, delivery, notes);
   const encodedMessage = encodeURIComponent(message);
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
 }

@@ -15,6 +15,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
   const { items, removeItem, updateQuantity, getTotal } = useCart();
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('takeaway');
   const [address, setAddress] = useState('');
+  const [notes, setNotes] = useState('');
 
   const subtotal = getTotal();
   const envio = deliveryMethod === 'delivery' && items.length > 0 ? envioData.costoEnvio : 0;
@@ -29,7 +30,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
         ? { method: 'takeaway' as const, address: 'Lavaisse 4050' }
         : { method: 'delivery' as const, address: address.trim() };
 
-    sendWhatsAppOrder(items, deliveryInfo);
+    sendWhatsAppOrder(items, deliveryInfo, notes);
   }
 
   const canOrder =
@@ -107,111 +108,125 @@ export function Cart({ isOpen, onClose }: CartProps) {
               </p>
             </div>
           ) : (
-            <ul aria-label="Items en el carrito">
+            <ul aria-label="Items en el carrito" className="flex flex-col">
               {items.map(({ product, quantity }) => (
                 <li
                   key={product.id}
+                  className="flex items-center gap-3 px-4 py-3"
                   style={{ borderBottom: '1px solid rgba(255,160,0,0.08)' }}
                 >
-                  {/* Imagen grande */}
-                  <div className="relative w-full" style={{ height: '160px', overflow: 'hidden' }}>
+                  {/* Thumbnail */}
+                  <div
+                    className="flex-shrink-0 overflow-hidden"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255,160,0,0.15)',
+                    }}
+                  >
                     <img
                       src={product.image}
                       alt={`Imagen de ${product.name}`}
                       className="w-full h-full object-cover"
                     />
-                    {/* Gradient overlay bottom */}
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-16"
+                  </div>
+
+                  {/* Nombre + precio unitario */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="font-bold uppercase text-sm leading-tight truncate"
                       style={{
-                        background: 'linear-gradient(to top, var(--color-surface-container) 0%, transparent 100%)',
+                        fontFamily: 'var(--font-display)',
+                        color: 'var(--color-on-surface)',
                       }}
-                      aria-hidden="true"
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <div
-                    className="px-4 py-3"
-                    style={{ background: 'var(--color-surface-container)' }}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p
-                        className="font-bold uppercase text-sm leading-tight"
-                        style={{ fontFamily: 'var(--font-display)', color: 'var(--color-on-surface)' }}
-                      >
-                        {product.name}
-                      </p>
-                      <span
-                        className="font-bold text-sm flex-shrink-0"
-                        style={{ color: 'var(--color-tertiary)', fontFamily: 'var(--font-display)' }}
-                      >
-                        ${(product.price * quantity).toLocaleString('es-AR')}
-                      </span>
-                    </div>
-
-                    <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--color-on-surface-variant)' }}>
-                      {product.description}
+                    >
+                      {product.name}
                     </p>
-
-                    {/* Controles */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-0" role="group" aria-label={`Cantidad de ${product.name}`}>
-                        <button
-                          id={`cart-decrease-${product.id}`}
-                          onClick={() => updateQuantity(product.id, quantity - 1)}
-                          aria-label={`Disminuir cantidad de ${product.name}`}
-                          className="w-8 h-8 flex items-center justify-center cursor-pointer transition-colors"
-                          style={{
-                            border: '1px solid var(--color-primary)',
-                            color: 'var(--color-primary)',
-                            borderRadius: '4px 0 0 4px',
-                            background: 'transparent',
-                          }}
-                        >
-                          <Minus size={12} aria-hidden="true" />
-                        </button>
-                        <span
-                          className="w-10 h-8 flex items-center justify-center text-sm font-bold"
-                          style={{
-                            borderTop: '1px solid var(--color-primary)',
-                            borderBottom: '1px solid var(--color-primary)',
-                            color: 'var(--color-on-surface)',
-                            fontFamily: 'var(--font-display)',
-                          }}
-                          aria-live="polite"
-                          aria-label={`Cantidad: ${quantity}`}
-                        >
-                          {quantity}
-                        </span>
-                        <button
-                          id={`cart-increase-${product.id}`}
-                          onClick={() => updateQuantity(product.id, quantity + 1)}
-                          aria-label={`Aumentar cantidad de ${product.name}`}
-                          className="w-8 h-8 flex items-center justify-center cursor-pointer transition-colors"
-                          style={{
-                            border: '1px solid var(--color-primary)',
-                            color: 'var(--color-primary)',
-                            borderRadius: '0 4px 4px 0',
-                            background: 'transparent',
-                          }}
-                        >
-                          <Plus size={12} aria-hidden="true" />
-                        </button>
-                      </div>
-
-                      <button
-                        id={`cart-remove-${product.id}`}
-                        onClick={() => removeItem(product.id)}
-                        aria-label={`Eliminar ${product.name} del carrito`}
-                        className="flex items-center gap-1 text-xs uppercase tracking-wide cursor-pointer transition-opacity hover:opacity-70"
-                        style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
-                      >
-                        <Trash2 size={12} aria-hidden="true" />
-                        ELIMINAR
-                      </button>
-                    </div>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{ color: 'var(--color-on-surface-variant)' }}
+                    >
+                      ${product.price.toLocaleString('es-AR')} c/u
+                    </p>
                   </div>
+
+                  {/* Stepper: − input + */}
+                  <div className="flex-shrink-0 flex items-center" role="group" aria-label={`Cantidad de ${product.name}`}>
+                    <button
+                      onClick={() => updateQuantity(product.id, quantity - 1)}
+                      aria-label={`Disminuir cantidad de ${product.name}`}
+                      className="w-7 h-8 flex items-center justify-center cursor-pointer transition-colors hover:brightness-125"
+                      style={{
+                        background: 'var(--color-surface-container-high)',
+                        border: '1px solid rgba(255,160,0,0.25)',
+                        borderRight: 'none',
+                        borderRadius: '4px 0 0 4px',
+                        color: 'var(--color-primary)',
+                      }}
+                    >
+                      <Minus size={11} aria-hidden="true" />
+                    </button>
+                    <input
+                      id={`cart-qty-${product.id}`}
+                      type="number"
+                      min={1}
+                      max={5}
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = Math.max(1, Math.min(5, Number(e.target.value) || 1));
+                        updateQuantity(product.id, val);
+                      }}
+                      aria-label={`Cantidad de ${product.name}`}
+                      className="text-sm font-bold text-center outline-none"
+                      style={{
+                        width: '36px',
+                        height: '32px',
+                        background: 'var(--color-surface-container-high)',
+                        color: 'var(--color-on-surface)',
+                        borderTop: '1px solid rgba(255,160,0,0.25)',
+                        borderBottom: '1px solid rgba(255,160,0,0.25)',
+                        fontFamily: 'var(--font-display)',
+                      }}
+                    />
+                    <button
+                      onClick={() => updateQuantity(product.id, Math.min(5, quantity + 1))}
+                      aria-label={`Aumentar cantidad de ${product.name}`}
+                      className="w-7 h-8 flex items-center justify-center cursor-pointer transition-colors hover:brightness-125"
+                      style={{
+                        background: 'var(--color-surface-container-high)',
+                        border: '1px solid rgba(255,160,0,0.25)',
+                        borderLeft: 'none',
+                        borderRadius: '0 4px 4px 0',
+                        color: 'var(--color-primary)',
+                      }}
+                    >
+                      <Plus size={11} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {/* Subtotal de línea */}
+                  <p
+                    className="flex-shrink-0 font-bold text-sm text-right"
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      color: 'var(--color-tertiary)',
+                      minWidth: '60px',
+                    }}
+                  >
+                    ${(product.price * quantity).toLocaleString('es-AR')}
+                  </p>
+
+                  {/* Eliminar */}
+                  <button
+                    id={`cart-remove-${product.id}`}
+                    onClick={() => removeItem(product.id)}
+                    aria-label={`Eliminar ${product.name} del carrito`}
+                    className="flex-shrink-0 cursor-pointer transition-opacity hover:opacity-70"
+                    style={{ color: 'var(--color-on-surface-variant)' }}
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -320,6 +335,32 @@ export function Cart({ isOpen, onClose }: CartProps) {
                 )}
               </div>
             )}
+
+            {/* ── Notas del pedido ── */}
+            <div className="mb-4">
+              <label
+                htmlFor="order-notes-input"
+                className="block text-xs uppercase tracking-wider mb-1.5 font-semibold"
+                style={{ color: 'var(--color-on-surface-variant)', fontFamily: 'var(--font-display)' }}
+              >
+                Notas del pedido
+              </label>
+              <textarea
+                id="order-notes-input"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ej: sin aderezo."
+                rows={2}
+                className="w-full px-3 py-2.5 text-sm outline-none transition-colors resize-none"
+                style={{
+                  background: 'var(--color-surface-container-high)',
+                  color: 'var(--color-on-surface)',
+                  border: '1px solid rgba(255,160,0,0.25)',
+                  borderRadius: '4px',
+                  fontFamily: 'var(--font-body)',
+                }}
+              />
+            </div>
 
             {/* Desglose */}
             <div className="flex flex-col gap-1.5 mb-4">
