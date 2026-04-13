@@ -300,7 +300,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
 									>
 										$
 										{(
-											product.price * quantity
+											(product.price ?? 0) * quantity
 										).toLocaleString('es-AR')}
 									</p>
 
