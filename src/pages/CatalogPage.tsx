@@ -5,8 +5,6 @@ import type { Product } from '../types';
 import { getProducts } from '../utils/getProducts';
 // import productsData from '../data/products.json';
 
-let products: Product[] = [];
-
 interface CatalogPageProps {
 	onCartOpen?: () => void;
 }
