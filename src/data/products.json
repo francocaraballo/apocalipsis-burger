@@ -3,8 +3,8 @@
     "id": "1",
     "name": "La Perdicion",
     "description": "Pan de papa, blend de carne (120 g), doble cheddar, kétchup, mostaza, cebolla caramelizada. Incluye papas",
-    "prices": { "simple": 3000, "double": 4500, "triple": 7000 },
-    "image": "https://i.ibb.co/dsqS2bTm/la-perdicion.jpg",
+    "prices": { "simple": 7500, "double": 10500, "triple": 12500, "cuadruple": 15000, "quintuple": 18000 },
+    "imageUrl": "https://i.ibb.co/dsqS2bTm/la-perdicion.jpg",
     "category": "clasicas",
     "available": true
   },
@@ -12,8 +12,8 @@
     "id": "2",
     "name": "Juicio Final",
     "description": "Pan de papa, blend de carne (120 g), queso azul, cebolla morada. Incluye papas",
-    "prices": { "simple": 3500, "double": 5000, "triple": 7500 },
-    "image": "https://i.ibb.co/PvdXyDTf/juicio-final.jpg",
+    "prices": { "simple": 7500, "double": 10500, "triple": 12500, "cuadruple": 15000, "quintuple": 18000 },
+    "imageUrl": "https://i.ibb.co/PvdXyDTf/juicio-final.jpg",
     "category": "premium",
     "available": true
   },
@@ -21,8 +21,8 @@
     "id": "3",
     "name": "Apocalipsis",
     "description": "Pan de papa, blend de carne (120 g), doble cheddar, bacon, barbacoa. Incluye papas",
-    "prices": { "simple": 3200, "double": 4800, "triple": 7200 },
-    "image": "https://i.ibb.co/1tNkmzcs/apocalipsis.jpg",
+    "prices": { "simple": 7500, "double": 10500, "triple": 12500, "cuadruple": 15000, "quintuple": 18000 },
+    "imageUrl": "https://i.ibb.co/1tNkmzcs/apocalipsis.jpg",
     "category": "premium",
     "available": true
   },
@@ -30,8 +30,8 @@
     "id": "4",
     "name": "Nuclear Bacon",
     "description": "Pan de papa, blend de carne (120 g), doble cheddar, bacon xxl, barbacoa, bomba de cheddar. Incluye papas",
-    "prices": { "simple": 2800, "double": 4200, "triple": 6500 },
-    "image": "https://i.ibb.co/Y7zjkzdw/nuclear-bacon.jpg",
+    "prices": { "simple": 7500, "double": 10500, "triple": 12500, "cuadruple": 15000, "quintuple": 18000 },
+    "imageUrl": "https://i.ibb.co/Y7zjkzdw/nuclear-bacon.jpg",
     "category": "premium",
     "available": true
   }
