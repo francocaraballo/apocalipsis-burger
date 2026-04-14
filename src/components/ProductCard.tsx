@@ -10,7 +10,7 @@ interface ProductCardProps {
 
 const SIZE_OPTIONS = [
 	{ label: 'Simple', key: 'simple' },
-	{ label: 'Doble', key: 'double' },
+	{ label: 'Doble', key: 'doble' },
 	{ label: 'Triple', key: 'triple' },
 	{ label: 'Cuádruple', key: 'cuadruple' },
 	{ label: 'Quíntuple', key: 'quintuple' },
