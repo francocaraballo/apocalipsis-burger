@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import logoSrc from '../assets/logo.png';
@@ -10,6 +10,8 @@ interface NavbarProps {
 export function Navbar({ onCartOpen }: NavbarProps) {
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <header
@@ -23,7 +25,9 @@ export function Navbar({ onCartOpen }: NavbarProps) {
       role="banner"
     >
       <nav
-        className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between"
+        className={`max-w-lg mx-auto px-4 h-14 flex items-center ${
+          isAdminRoute ? 'justify-center' : 'justify-between'
+        }`}
         aria-label="Navegación principal"
       >
         {/* Logo — lleva al inicio */}
@@ -40,40 +44,42 @@ export function Navbar({ onCartOpen }: NavbarProps) {
         </NavLink>
 
         {/* Cart button */}
-        <button
-          id="cart-toggle-btn"
-          onClick={onCartOpen}
-          aria-label={`Carrito${totalItems > 0 ? ` — ${totalItems} items` : ''}`}
-          className="relative flex items-center justify-center transition-opacity hover:opacity-80 cursor-pointer"
-          style={{ padding: '6px' }}
-        >
-          <ShoppingBag
-            size={24}
-            style={{
-              color: totalItems > 0
-                ? 'var(--color-primary)'
-                : 'var(--color-on-surface-variant)',
-            }}
-            aria-hidden="true"
-          />
-          {totalItems > 0 && (
-            <span
-              className="absolute flex items-center justify-center text-[10px] font-bold"
+        {!isAdminRoute && (
+          <button
+            id="cart-toggle-btn"
+            onClick={onCartOpen}
+            aria-label={`Carrito${totalItems > 0 ? ` — ${totalItems} items` : ''}`}
+            className="relative flex items-center justify-center transition-opacity hover:opacity-80 cursor-pointer"
+            style={{ padding: '6px' }}
+          >
+            <ShoppingBag
+              size={24}
               style={{
-                top: '0',
-                right: '-2px',
-                minWidth: '18px',
-                height: '18px',
-                borderRadius: '9999px',
-                background: 'var(--color-primary)',
-                color: 'var(--color-on-primary)',
-                lineHeight: 1,
+                color: totalItems > 0
+                  ? 'var(--color-primary)'
+                  : 'var(--color-on-surface-variant)',
               }}
-            >
-              {totalItems}
-            </span>
-          )}
-        </button>
+              aria-hidden="true"
+            />
+            {totalItems > 0 && (
+              <span
+                className="absolute flex items-center justify-center text-[10px] font-bold"
+                style={{
+                  top: '0',
+                  right: '-2px',
+                  minWidth: '18px',
+                  height: '18px',
+                  borderRadius: '9999px',
+                  background: 'var(--color-primary)',
+                  color: 'var(--color-on-primary)',
+                  lineHeight: 1,
+                }}
+              >
+                {totalItems}
+              </span>
+            )}
+          </button>
+        )}
       </nav>
     </header>
   );
