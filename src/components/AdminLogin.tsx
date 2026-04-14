@@ -79,7 +79,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 						type='email'
 						value={emailInput}
 						onChange={(e) => setEmailInput(e.target.value)}
-						placeholder='admin@apocalipsis.com'
+						placeholder=''
 						autoComplete='email'
 						required
 					/>
@@ -90,7 +90,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 						type='password'
 						value={passwordInput}
 						onChange={(e) => setPasswordInput(e.target.value)}
-						placeholder='••••••••'
+						placeholder=''
 						autoComplete='current-password'
 						required
 					/>
