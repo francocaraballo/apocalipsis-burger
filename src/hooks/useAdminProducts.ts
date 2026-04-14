@@ -57,7 +57,7 @@ export function useAdminProducts(isAuthenticated: boolean) {
 			const variants = [];
 			const sizeMap: Record<string, string> = {
 				simple: 'simple',
-				double: 'doble',
+				doble: 'doble',
 				triple: 'triple',
 				cuadruple: 'cuadruple',
 				quintuple: 'quintuple',
