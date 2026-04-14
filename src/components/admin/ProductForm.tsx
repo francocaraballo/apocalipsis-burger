@@ -1,14 +1,6 @@
-import { useState } from 'react';
-import { Plus, AlertCircle, CheckCircle } from 'lucide-react';
-import type { Product, ProductCategory } from '../../types';
-
-const EMPTY_FORM: Omit<Product, 'id' | 'available'> = {
-	name: '',
-	description: '',
-	price: 0,
-	image: '',
-	category: 'clasicas',
-};
+import { useState, useEffect } from 'react';
+import { Plus, Check, AlertCircle, CheckCircle, X } from 'lucide-react';
+import type { Product, ProductCategory, ProductPrices } from '../../types';
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
 	{ value: 'clasicas', label: 'Clásicas' },
@@ -18,25 +10,93 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
 ];
 
 interface ProductFormProps {
-	onAddProduct: (product: Product) => void;
+	initialData?: Product;
+	onSubmitProduct: (product: Omit<Product, 'id' | 'available'>) => void;
+	onCancelEdit?: () => void;
+	isLoading?: boolean;
 }
 
-export function ProductForm({ onAddProduct }: ProductFormProps) {
-	const [form, setForm] =
-		useState<Omit<Product, 'id' | 'available'>>(EMPTY_FORM);
-	const [formSuccess, setFormSuccess] = useState('');
-	const [formError, setFormError] = useState('');
+export function ProductForm({
+	initialData,
+	onSubmitProduct,
+	onCancelEdit,
+	isLoading = false,
+}: ProductFormProps) {
+	const [name, setName] = useState('');
+	const [description, setDescription] = useState('');
+	const [image, setImage] = useState('');
+	const [category, setCategory] = useState<ProductCategory>('clasicas');
 
-	function handleFieldChange(
-		e: React.ChangeEvent<
-			HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-		>,
+	const [price, setPrice] = useState<number | ''>('');
+	const [prices, setPrices] = useState<Partial<ProductPrices>>({
+		simple: undefined,
+		doble: undefined,
+		triple: undefined,
+		cuadruple: undefined,
+		quintuple: undefined,
+	});
+
+	const [formError, setFormError] = useState('');
+	const [formSuccess, setFormSuccess] = useState('');
+
+	useEffect(() => {
+		if (initialData) {
+			setName(initialData.name);
+			setDescription(initialData.description);
+			setImage(initialData.image || '');
+			setCategory(initialData.category);
+
+			if (initialData.category === 'extras') {
+				setPrice(initialData.price || '');
+				setPrices({});
+			} else {
+				setPrice('');
+				setPrices(
+					initialData.prices || {
+						simple: initialData.price, // fallback if it had a single price
+					},
+				);
+			}
+		} else {
+			resetForm();
+		}
+	}, [initialData]);
+
+	// Cuando cambia la categoría, resetear el precio apropiado para no mandar basura
+	function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
+		const newCat = e.target.value as ProductCategory;
+		setCategory(newCat);
+		if (newCat === 'extras') {
+			setPrices({});
+		} else {
+			setPrice('');
+		}
+	}
+
+	function handlePriceVariantChange(
+		variant: keyof ProductPrices,
+		value: string,
 	) {
-		const { name, value } = e.target;
-		setForm((prev) => ({
+		setPrices((prev) => ({
 			...prev,
-			[name]: name === 'price' ? Number(value) : value,
+			[variant]: value === '' ? undefined : Number(value),
 		}));
+	}
+
+	function resetForm() {
+		setName('');
+		setDescription('');
+		setImage('');
+		setCategory('clasicas');
+		setPrice('');
+		setPrices({
+			simple: undefined,
+			doble: undefined,
+			triple: undefined,
+			cuadruple: undefined,
+			quintuple: undefined,
+		});
+		setFormError('');
 	}
 
 	function handleSubmit(e: React.FormEvent) {
@@ -44,48 +104,97 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 		setFormError('');
 		setFormSuccess('');
 
-		const currentPrice = form.price || 0;
-
-		if (
-			!form.name.trim() ||
-			!form.description.trim() ||
-			currentPrice <= 0
-		) {
-			setFormError(
-				'Completá nombre, descripción y un precio válido antes de guardar.',
-			);
+		if (!name.trim() || !description.trim()) {
+			setFormError('Completá nombre y descripción.');
 			return;
 		}
 
-		const newProduct: Product = {
-			...form,
-			id: `custom-${Date.now()}`,
-			available: true,
-		};
+		let finalPrice: number | undefined = undefined;
+		let finalPrices: ProductPrices | undefined = undefined;
 
-		onAddProduct(newProduct);
-		setForm(EMPTY_FORM);
-		setFormSuccess(`"${newProduct.name}" agregado correctamente.`);
-		setTimeout(() => setFormSuccess(''), 3000);
+		if (category === 'extras') {
+			if (price === '' || Number(price) <= 0) {
+				setFormError('Completá un precio válido para el producto.');
+				return;
+			}
+			finalPrice = Number(price);
+		} else {
+			// Si es multiple precio, minimo debe tener el simple o doble
+			if (!prices.simple && !prices.doble) {
+				setFormError(
+					'Para hamburguesas, debés ingresar al menos el precio de la Simple o Doble.',
+				);
+				return;
+			}
+			finalPrices = {
+				simple: prices.simple || 0,
+				doble: prices.doble || 0,
+				triple: prices.triple || 0,
+				...(prices.cuadruple && { cuadruple: prices.cuadruple }),
+				...(prices.quintuple && { quintuple: prices.quintuple }),
+			};
+		}
+
+		onSubmitProduct({
+			name: name.trim(),
+			description: description.trim(),
+			image: image.trim(),
+			category,
+			price: finalPrice,
+			prices: finalPrices,
+		});
+
+		if (!initialData) {
+			resetForm();
+			setFormSuccess(`Producto guardado correctamente.`);
+			setTimeout(() => setFormSuccess(''), 3000);
+		}
 	}
+
+	const isEditing = !!initialData;
 
 	return (
 		<section
-			className='rounded-[var(--radius-card)] p-6 mb-10'
+			className={`rounded-[var(--radius-card)] p-6 mb-10 transition-colors duration-300 ${isEditing ? 'ring-2 ring-[var(--color-primary)]' : ''}`}
 			style={{ background: 'var(--color-surface-container)' }}
-			aria-label='Formulario agregar producto'
+			aria-label={isEditing ? 'Formulario editar producto' : 'Formulario agregar producto'}
 		>
-			<h2
-				className='flex items-center gap-2 text-lg font-bold uppercase text-[var(--color-on-surface)] mb-6'
-				style={{ fontFamily: 'var(--font-display)' }}
-			>
-				<Plus
-					size={18}
-					className='text-[var(--color-primary)]'
-					aria-hidden='true'
-				/>
-				Agregar producto
-			</h2>
+			<div className='flex items-center justify-between mb-6'>
+				<h2
+					className='flex items-center gap-2 text-lg font-bold uppercase text-[var(--color-on-surface)]'
+					style={{ fontFamily: 'var(--font-display)' }}
+				>
+					{isEditing ? (
+						<>
+							<Check
+								size={18}
+								className='text-[var(--color-primary)]'
+								aria-hidden='true'
+							/>
+							Editando: {initialData.name}
+						</>
+					) : (
+						<>
+							<Plus
+								size={18}
+								className='text-[var(--color-primary)]'
+								aria-hidden='true'
+							/>
+							Agregar producto
+						</>
+					)}
+				</h2>
+
+				{isEditing && onCancelEdit && (
+					<button
+						onClick={onCancelEdit}
+						type='button'
+						className='text-sm text-[var(--color-on-surface-variant)] hover:text-[var(--color-error)] flex items-center gap-1 transition-colors'
+					>
+						<X size={16} /> Cancelar edición
+					</button>
+				)}
+			</div>
 
 			<form
 				onSubmit={handleSubmit}
@@ -102,37 +211,12 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 						id='product-name'
 						name='name'
 						type='text'
-						value={form.name}
-						onChange={handleFieldChange}
+						value={name}
+						onChange={(e) => setName(e.target.value)}
 						placeholder='La Condena'
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-						style={{
-							borderBottom:
-								'2px solid var(--color-outline-variant)',
-						}}
-					/>
-				</div>
-
-				<div className='flex flex-col gap-1.5'>
-					<label
-						htmlFor='product-price'
-						className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
-					>
-						Precio (ARS) *
-					</label>
-					<input
-						id='product-price'
-						name='price'
-						type='number'
-						min={0}
-						value={form.price || ''}
-						onChange={handleFieldChange}
-						placeholder='4500'
-						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-						style={{
-							borderBottom:
-								'2px solid var(--color-outline-variant)',
-						}}
+						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						disabled={isLoading}
 					/>
 				</div>
 
@@ -146,13 +230,11 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 					<select
 						id='product-category'
 						name='category'
-						value={form.category}
-						onChange={handleFieldChange}
+						value={category}
+						onChange={handleCategoryChange}
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none cursor-pointer'
-						style={{
-							borderBottom:
-								'2px solid var(--color-outline-variant)',
-						}}
+						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						disabled={isLoading}
 					>
 						{CATEGORIES.map(({ value, label }) => (
 							<option key={value} value={value}>
@@ -162,7 +244,7 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 					</select>
 				</div>
 
-				<div className='flex flex-col gap-1.5'>
+				<div className='flex flex-col gap-1.5 sm:col-span-2'>
 					<label
 						htmlFor='product-image'
 						className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
@@ -173,18 +255,65 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 						id='product-image'
 						name='image'
 						type='url'
-						value={form.image}
-						onChange={handleFieldChange}
+						value={image}
+						onChange={(e) => setImage(e.target.value)}
 						placeholder='https://...'
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-						style={{
-							borderBottom:
-								'2px solid var(--color-outline-variant)',
-						}}
+						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						disabled={isLoading}
 					/>
 				</div>
 
-				<div className='sm:col-span-2 flex flex-col gap-1.5'>
+				{category === 'extras' ? (
+					<div className='flex flex-col gap-1.5 sm:col-span-2'>
+						<label
+							htmlFor='product-price'
+							className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
+						>
+							Precio Único (ARS) *
+						</label>
+						<input
+							id='product-price'
+							name='price'
+							type='number'
+							min={0}
+							value={price}
+							onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+							placeholder='4500'
+							className='w-full sm:w-1/2 px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
+							style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+							disabled={isLoading}
+						/>
+					</div>
+				) : (
+					<div className='sm:col-span-2 p-4 mt-2 rounded-[var(--radius-card)] bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]'>
+						<p className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)] mb-3 font-semibold'>
+							Variantes de Precios (ARS) *
+						</p>
+						<div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
+							{['simple', 'doble', 'triple', 'cuadruple', 'quintuple'].map((size) => (
+								<div key={size} className='flex flex-col gap-1'>
+									<label htmlFor={`price-${size}`} className='text-[10px] uppercase text-[var(--color-on-surface-variant)]'>
+										{size}
+									</label>
+									<input
+										id={`price-${size}`}
+										type='number'
+										min={0}
+										value={prices[size as keyof ProductPrices] || ''}
+										onChange={(e) => handlePriceVariantChange(size as keyof ProductPrices, e.target.value)}
+										placeholder='0'
+										className='px-2 py-1.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container)] text-[var(--color-on-surface)] text-sm outline-none'
+										style={{ borderBottom: '1px solid var(--color-outline-variant)' }}
+										disabled={isLoading}
+									/>
+								</div>
+							))}
+						</div>
+					</div>
+				)}
+
+				<div className='sm:col-span-2 flex flex-col gap-1.5 mt-2'>
 					<label
 						htmlFor='product-description'
 						className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
@@ -194,15 +323,13 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 					<textarea
 						id='product-description'
 						name='description'
-						value={form.description}
-						onChange={handleFieldChange}
+						value={description}
+						onChange={(e) => setDescription(e.target.value)}
 						placeholder='Doble medallón angus, cheddar ahumado...'
 						rows={3}
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none resize-none'
-						style={{
-							borderBottom:
-								'2px solid var(--color-outline-variant)',
-						}}
+						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						disabled={isLoading}
 					/>
 				</div>
 
@@ -221,23 +348,32 @@ export function ProductForm({ onAddProduct }: ProductFormProps) {
 					)}
 				</div>
 
-				<div className='sm:col-span-2'>
+				<div className='sm:col-span-2 mt-2'>
 					<button
 						id='add-product-submit-btn'
 						type='submit'
-						className='flex items-center gap-2 px-6 py-3 rounded-[var(--radius-button)] font-bold uppercase text-sm text-[var(--color-on-primary)] transition-all duration-200 hover:scale-[1.01] cursor-pointer'
+						disabled={isLoading}
+						className='flex items-center gap-2 px-6 py-3 rounded-[var(--radius-button)] font-bold uppercase text-sm text-[var(--color-on-primary)] transition-all duration-200 hover:scale-[1.01] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
 						style={{
 							fontFamily: 'var(--font-display)',
 							background:
 								'linear-gradient(135deg, var(--color-primary-container) 0%, var(--color-secondary-container) 100%)',
 						}}
 					>
-						<Plus size={16} aria-hidden='true' />
-						Guardar producto
+						{isEditing ? (
+							<>
+								<Check size={16} aria-hidden='true' />
+								Guardar cambios
+							</>
+						) : (
+							<>
+								<Plus size={16} aria-hidden='true' />
+								Crear producto
+							</>
+						)}
 					</button>
 				</div>
 			</form>
 		</section>
 	);
 }
-

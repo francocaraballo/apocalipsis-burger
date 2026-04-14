@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshCw, LogOut, Loader2 } from 'lucide-react';
+import type { Product } from '../types';
 import { AdminLogin } from '../components/AdminLogin';
 import { supabase } from '../lib/supabaseClient';
 import { useAdminProducts } from '../hooks/useAdminProducts';
@@ -25,8 +26,10 @@ export function AdminPage() {
 		return () => subscription.unsubscribe();
 	}, []);
 
-	const { products, isLoading, handleAddProduct, handleDeleteProduct } =
+	const { products, isLoading, isActionLoading, handleAddProduct, handleEditProduct, handleDeleteProduct } =
 		useAdminProducts(isAuthenticated);
+
+	const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
 
 	async function handleLogout() {
 		await supabase.auth.signOut();
@@ -87,11 +90,36 @@ export function AdminPage() {
 				</button>
 			</div>
 
-			<ProductForm onAddProduct={handleAddProduct} />
+			{isActionLoading && (
+				<div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm'>
+					<div className='bg-surface-container p-6 rounded-[var(--radius-card)] flex flex-col items-center gap-3 w-64'>
+						<RefreshCw size={28} className='animate-spin text-primary' />
+						<p className='text-sm uppercase tracking-wide font-bold'>Guardando...</p>
+					</div>
+				</div>
+			)}
+
+			<ProductForm 
+				initialData={editingProduct}
+				onSubmitProduct={(product) => {
+					if (editingProduct) {
+						handleEditProduct(editingProduct.id, product);
+						setEditingProduct(undefined);
+					} else {
+						handleAddProduct(product);
+					}
+				}}
+				onCancelEdit={() => setEditingProduct(undefined)}
+				isLoading={isActionLoading}
+			/>
 
 			<ProductList
 				products={products}
 				onDeleteProduct={handleDeleteProduct}
+				onEditProduct={(product) => {
+					setEditingProduct(product);
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}}
 			/>
 		</main>
 	);

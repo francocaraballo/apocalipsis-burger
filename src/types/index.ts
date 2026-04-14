@@ -1,6 +1,6 @@
 export interface ProductPrices {
 	simple: number;
-	double: number;
+	doble: number;
 	triple: number;
 	cuadruple?: number;
 	quintuple?: number;

@@ -34,7 +34,7 @@ export const getProducts = async (): Promise<Product[]> => {
 				// Mapa para normalizar nombres de la BD a las keys que usa tu interfaz TypeScript
 				const sizeMap: Record<string, string> = {
 					simple: 'simple',
-					doble: 'double',
+					doble: 'doble',
 					triple: 'triple',
 					cuadruple: 'cuadruple',
 					quintuple: 'quintuple',
@@ -48,7 +48,7 @@ export const getProducts = async (): Promise<Product[]> => {
 				}, {});
 
 				// Verificamos si al armarlo nos quedaron las variantes core (simple y doble)
-				if (builtPrices.simple && builtPrices.double) {
+				if (builtPrices.simple && builtPrices.doble) {
 					prices = builtPrices as Product['prices'];
 				} else {
 					price = Number(variants[0].price); // Fallback robusto

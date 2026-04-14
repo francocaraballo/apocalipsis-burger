@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { FormInput } from './ui/FormInput';
 
 interface AdminLoginProps {
 	onLoginSuccess: () => void;
@@ -30,7 +31,8 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 		setIsLoading(false);
 
 		if (error) {
-			setAuthError('Credenciales incorrectas. Intentá de nuevo.');
+			console.error('Error crudo de Supabase:', error);
+			setAuthError(error.message || 'Credenciales incorrectas. Intentá de nuevo.');
 		} else {
 			onLoginSuccess();
 		}
@@ -71,69 +73,27 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 				</div>
 
 				<form onSubmit={handleLogin} className='flex flex-col gap-4'>
-					<div className='flex flex-col gap-1.5'>
-						<label
-							htmlFor='admin-email-input'
-							className='text-xs uppercase tracking-wide text-on-surface-variant'
-						>
-							Email
-						</label>
-						<input
-							id='admin-email-input'
-							type='email'
-							value={emailInput}
-							onChange={(e) => setEmailInput(e.target.value)}
-							placeholder='admin@apocalipsis.com'
-							autoComplete='email'
-							required
-							className='w-full px-3 py-2.5 rounded-(--radius-button) bg-surface-container-lowest text-on-surface text-sm outline-none transition-all duration-200'
-							style={{
-								border: '2px solid transparent',
-								borderBottom:
-									'2px solid var(--color-outline-variant)',
-							}}
-							onFocus={(e) => {
-								e.target.style.borderBottomColor =
-									'var(--color-primary)';
-							}}
-							onBlur={(e) => {
-								e.target.style.borderBottomColor =
-									'var(--color-outline-variant)';
-							}}
-						/>
-					</div>
+					<FormInput
+						id='admin-email-input'
+						label='Email'
+						type='email'
+						value={emailInput}
+						onChange={(e) => setEmailInput(e.target.value)}
+						placeholder='admin@apocalipsis.com'
+						autoComplete='email'
+						required
+					/>
 
-					<div className='flex flex-col gap-1.5'>
-						<label
-							htmlFor='admin-password-input'
-							className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
-						>
-							Contraseña
-						</label>
-						<input
-							id='admin-password-input'
-							type='password'
-							value={passwordInput}
-							onChange={(e) => setPasswordInput(e.target.value)}
-							placeholder='••••••••'
-							autoComplete='current-password'
-							required
-							className='w-full px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none transition-all duration-200'
-							style={{
-								border: '2px solid transparent',
-								borderBottom:
-									'2px solid var(--color-outline-variant)',
-							}}
-							onFocus={(e) => {
-								e.target.style.borderBottomColor =
-									'var(--color-primary)';
-							}}
-							onBlur={(e) => {
-								e.target.style.borderBottomColor =
-									'var(--color-outline-variant)';
-							}}
-						/>
-					</div>
+					<FormInput
+						id='admin-password-input'
+						label='Contraseña'
+						type='password'
+						value={passwordInput}
+						onChange={(e) => setPasswordInput(e.target.value)}
+						placeholder='••••••••'
+						autoComplete='current-password'
+						required
+					/>
 
 					{authError && (
 						<div className='flex items-center gap-2 text-sm text-[var(--color-error)]'>

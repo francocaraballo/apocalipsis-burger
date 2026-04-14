@@ -1,12 +1,13 @@
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import type { Product } from '../../types';
 
 interface ProductListProps {
 	products: Product[];
 	onDeleteProduct: (id: string) => void;
+	onEditProduct: (product: Product) => void;
 }
 
-export function ProductList({ products, onDeleteProduct }: ProductListProps) {
+export function ProductList({ products, onDeleteProduct, onEditProduct }: ProductListProps) {
 	return (
 		<section aria-label='Lista de productos'>
 			<h2
@@ -51,14 +52,24 @@ export function ProductList({ products, onDeleteProduct }: ProductListProps) {
 								).toLocaleString('es-AR')}
 							</p>
 						</div>
-						<button
-							id={`delete-product-${product.id}`}
-							onClick={() => onDeleteProduct(product.id)}
-							aria-label={`Eliminar producto ${product.name}`}
-							className='p-2 text-[var(--color-outline)] hover:text-[var(--color-error)] transition-colors cursor-pointer shrink-0'
-						>
-							<Trash2 size={16} aria-hidden='true' />
-						</button>
+						<div className='flex items-center gap-1 shrink-0'>
+							<button
+								id={`edit-product-${product.id}`}
+								onClick={() => onEditProduct(product)}
+								aria-label={`Editar producto ${product.name}`}
+								className='p-2 text-[var(--color-outline)] hover:text-[var(--color-primary)] transition-colors cursor-pointer'
+							>
+								<Pencil size={16} aria-hidden='true' />
+							</button>
+							<button
+								id={`delete-product-${product.id}`}
+								onClick={() => onDeleteProduct(product.id)}
+								aria-label={`Eliminar producto ${product.name}`}
+								className='p-2 text-[var(--color-outline)] hover:text-[var(--color-error)] transition-colors cursor-pointer'
+							>
+								<Trash2 size={16} aria-hidden='true' />
+							</button>
+						</div>
 					</div>
 				))}
 			</div>
