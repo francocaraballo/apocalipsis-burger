@@ -102,7 +102,7 @@ export function useAdminProducts(isAuthenticated: boolean) {
 			await fetchProducts(); // Refetch to update list
 		} catch (error: any) {
 			console.error('Error adding product:', error);
-			alert(`Error al agregar el producto: ${error.message || 'Error desconocido'}`);
+			throw error;
 		} finally {
 			setIsActionLoading(false);
 		}
@@ -129,15 +129,13 @@ export function useAdminProducts(isAuthenticated: boolean) {
 			await fetchProducts();
 		} catch (error: any) {
 			console.error('Error editing product:', error);
-			alert(`Error al editar el producto: ${error.message || 'Error desconocido'}`);
+			throw error;
 		} finally {
 			setIsActionLoading(false);
 		}
 	}
 
 	async function handleDeleteProduct(id: string) {
-		if (!confirm('¿Seguro que querés eliminar este producto de forma permanente?')) return;
-		
 		setIsActionLoading(true);
 		try {
 			// Wipe variants first just in case there's no cascade delete configured
@@ -149,7 +147,7 @@ export function useAdminProducts(isAuthenticated: boolean) {
 			setProducts((prev) => prev.filter((p) => p.id !== id));
 		} catch (error: any) {
 			console.error('Error deleting product:', error);
-			alert(`Error al eliminar: ${error.message || 'Error desconocido'}`);
+			throw error;
 		} finally {
 			setIsActionLoading(false);
 		}

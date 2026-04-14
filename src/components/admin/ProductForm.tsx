@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Check, AlertCircle, CheckCircle, X } from 'lucide-react';
 import type { Product, ProductCategory, ProductPrices } from '../../types';
+import { StatusModal } from '../ui/StatusModal';
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
 	{ value: 'clasicas', label: 'Clásicas' },
@@ -11,16 +12,14 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
 
 interface ProductFormProps {
 	initialData?: Product;
-	onSubmitProduct: (product: Omit<Product, 'id' | 'available'>) => void;
+	onSubmitProduct: (product: Omit<Product, 'id' | 'available'>) => Promise<void>;
 	onCancelEdit?: () => void;
-	isLoading?: boolean;
 }
 
 export function ProductForm({
 	initialData,
 	onSubmitProduct,
 	onCancelEdit,
-	isLoading = false,
 }: ProductFormProps) {
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
@@ -37,7 +36,9 @@ export function ProductForm({
 	});
 
 	const [formError, setFormError] = useState('');
-	const [formSuccess, setFormSuccess] = useState('');
+	const [modalState, setModalState] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', message?: string }>({ status: 'idle' });
+	
+	const isLoading = modalState.status === 'loading';
 
 	useEffect(() => {
 		if (initialData) {
@@ -99,10 +100,9 @@ export function ProductForm({
 		setFormError('');
 	}
 
-	function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setFormError('');
-		setFormSuccess('');
 
 		if (!name.trim() || !description.trim()) {
 			setFormError('Completá nombre y descripción.');
@@ -135,19 +135,30 @@ export function ProductForm({
 			};
 		}
 
-		onSubmitProduct({
-			name: name.trim(),
-			description: description.trim(),
-			image: image.trim(),
-			category,
-			price: finalPrice,
-			prices: finalPrices,
-		});
+		setModalState({ status: 'loading' });
+		
+		try {
+			await onSubmitProduct({
+				name: name.trim(),
+				description: description.trim(),
+				image: image.trim(),
+				category,
+				price: finalPrice,
+				prices: finalPrices,
+			});
 
-		if (!initialData) {
-			resetForm();
-			setFormSuccess(`Producto guardado correctamente.`);
-			setTimeout(() => setFormSuccess(''), 3000);
+			if (!initialData) {
+				resetForm();
+			}
+			setModalState({ 
+				status: 'success', 
+				message: initialData ? 'Los cambios se aplicaron correctamente.' : 'El producto se agregó exitosamente.' 
+			});
+		} catch (error: any) {
+			setModalState({ 
+				status: 'error', 
+				message: error.message || 'Ocurrió un problema, volvé a intentarlo.' 
+			});
 		}
 	}
 
@@ -159,6 +170,16 @@ export function ProductForm({
 			style={{ background: 'var(--color-surface-container)' }}
 			aria-label={isEditing ? 'Formulario editar producto' : 'Formulario agregar producto'}
 		>
+			<StatusModal 
+				status={modalState.status} 
+				message={modalState.message} 
+				title={modalState.status === 'success' ? 'Trámite exitoso' : undefined}
+				onOpenChange={(open) => {
+					if (!open && modalState.status !== 'loading') {
+						setModalState({ status: 'idle' });
+					}
+				}}
+			/>
 			<div className='flex items-center justify-between mb-6'>
 				<h2
 					className='flex items-center gap-2 text-lg font-bold uppercase text-[var(--color-on-surface)]'
@@ -338,12 +359,6 @@ export function ProductForm({
 						<div className='flex items-center gap-2 text-sm text-[var(--color-error)]'>
 							<AlertCircle size={14} aria-hidden='true' />
 							{formError}
-						</div>
-					)}
-					{formSuccess && (
-						<div className='flex items-center gap-2 text-sm text-emerald-400'>
-							<CheckCircle size={14} aria-hidden='true' />
-							{formSuccess}
 						</div>
 					)}
 				</div>

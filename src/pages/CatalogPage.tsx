@@ -18,7 +18,6 @@ export function CatalogPage({ onCartOpen }: CatalogPageProps) {
 			.then((data) => {
 				if (data) {
 					setItems(data);
-					console.log(data);
 				}
 			})
 			.catch(console.error);

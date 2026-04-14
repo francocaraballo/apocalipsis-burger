@@ -90,27 +90,19 @@ export function AdminPage() {
 				</button>
 			</div>
 
-			{isActionLoading && (
-				<div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm'>
-					<div className='bg-surface-container p-6 rounded-[var(--radius-card)] flex flex-col items-center gap-3 w-64'>
-						<RefreshCw size={28} className='animate-spin text-primary' />
-						<p className='text-sm uppercase tracking-wide font-bold'>Guardando...</p>
-					</div>
-				</div>
-			)}
+
 
 			<ProductForm 
 				initialData={editingProduct}
-				onSubmitProduct={(product) => {
+				onSubmitProduct={async (product) => {
 					if (editingProduct) {
-						handleEditProduct(editingProduct.id, product);
+						await handleEditProduct(editingProduct.id, product);
 						setEditingProduct(undefined);
 					} else {
-						handleAddProduct(product);
+						await handleAddProduct(product);
 					}
 				}}
 				onCancelEdit={() => setEditingProduct(undefined)}
-				isLoading={isActionLoading}
 			/>
 
 			<ProductList

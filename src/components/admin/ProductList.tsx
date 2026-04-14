@@ -1,15 +1,63 @@
+import { useState } from 'react';
 import { Trash2, Pencil } from 'lucide-react';
 import type { Product } from '../../types';
+import { StatusModal } from '../ui/StatusModal';
 
 interface ProductListProps {
 	products: Product[];
-	onDeleteProduct: (id: string) => void;
+	onDeleteProduct: (id: string) => Promise<void>;
 	onEditProduct: (product: Product) => void;
 }
 
 export function ProductList({ products, onDeleteProduct, onEditProduct }: ProductListProps) {
+	const [deleteModalState, setDeleteModalState] = useState<{
+		status: 'idle' | 'loading' | 'success' | 'error' | 'confirm';
+		message?: string;
+		targetId?: string;
+	}>({ status: 'idle' });
+
+	const requestDelete = (product: Product) => {
+		setDeleteModalState({ 
+			status: 'confirm', 
+			message: `Vas a eliminar el producto "${product.name}". ¡Esta acción no se puede deshacer!`,
+			targetId: product.id 
+		});
+	};
+
+	const executeDelete = async () => {
+		const { targetId } = deleteModalState;
+		if (!targetId) return;
+
+		setDeleteModalState(prev => ({ ...prev, status: 'loading' }));
+		try {
+			await onDeleteProduct(targetId);
+			setDeleteModalState(prev => ({ 
+				...prev, 
+				status: 'success', 
+				message: 'El producto fue eliminado de forma permanente de tu catálogo.' 
+			}));
+		} catch (error: any) {
+			setDeleteModalState(prev => ({ 
+				...prev, 
+				status: 'error', 
+				message: error.message || 'Error al eliminar el producto.' 
+			}));
+		}
+	};
+
 	return (
 		<section aria-label='Lista de productos'>
+			<StatusModal 
+				status={deleteModalState.status} 
+				message={deleteModalState.message} 
+				title={deleteModalState.status === 'success' ? 'Eliminado con éxito' : undefined}
+				onConfirm={executeDelete}
+				onOpenChange={(open) => {
+					if (!open && deleteModalState.status !== 'loading') {
+						setDeleteModalState({ status: 'idle' });
+					}
+				}}
+			/>
 			<h2
 				className='text-xl font-bold uppercase text-[var(--color-on-surface)] mb-4'
 				style={{ fontFamily: 'var(--font-display)' }}
@@ -63,7 +111,7 @@ export function ProductList({ products, onDeleteProduct, onEditProduct }: Produc
 							</button>
 							<button
 								id={`delete-product-${product.id}`}
-								onClick={() => onDeleteProduct(product.id)}
+								onClick={() => requestDelete(product)}
 								aria-label={`Eliminar producto ${product.name}`}
 								className='p-2 text-[var(--color-outline)] hover:text-[var(--color-error)] transition-colors cursor-pointer'
 							>
