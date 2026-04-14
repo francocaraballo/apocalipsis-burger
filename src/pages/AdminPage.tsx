@@ -26,7 +26,7 @@ export function AdminPage() {
 		return () => subscription.unsubscribe();
 	}, []);
 
-	const { products, isLoading, isActionLoading, handleAddProduct, handleEditProduct, handleDeleteProduct } =
+	const { products, isLoading, handleAddProduct, handleEditProduct, handleDeleteProduct } =
 		useAdminProducts(isAuthenticated);
 
 	const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Check, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Plus, Check, AlertCircle, X } from 'lucide-react';
 import type { Product, ProductCategory, ProductPrices } from '../../types';
 import { StatusModal } from '../ui/StatusModal';
 
