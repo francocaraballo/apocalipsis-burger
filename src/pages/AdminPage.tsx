@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
 	RefreshCw,
 	LogOut,
@@ -51,6 +51,7 @@ export function AdminPage() {
 	const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
 	const [isProductFormOpen, setIsProductFormOpen] = useState(false);
 	const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+	const productFormRef = useRef<HTMLDivElement>(null);
 
 	async function handleLogout() {
 		setIsLogoutModalOpen(false);
@@ -177,7 +178,7 @@ export function AdminPage() {
 					)}
 				</div>
 
-				<div>
+				<div ref={productFormRef} className='scroll-mt-[65px]'>
 					<button
 						onClick={() => {
 							if (editingProduct) {
@@ -246,7 +247,12 @@ export function AdminPage() {
 				onEditProduct={(product) => {
 					setEditingProduct(product);
 					setIsProductFormOpen(true);
-					window.scrollTo({ top: 0, behavior: 'smooth' });
+					setTimeout(() => {
+						productFormRef.current?.scrollIntoView({
+							behavior: 'smooth',
+							block: 'start',
+						});
+					}, 100);
 				}}
 			/>
 
