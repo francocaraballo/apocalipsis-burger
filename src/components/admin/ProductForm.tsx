@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Check, AlertCircle, X } from 'lucide-react';
+import { Plus, Check, AlertCircle, X, Upload } from 'lucide-react';
 import type { Product, ProductCategory, ProductPrices } from '../../types';
 import { StatusModal } from '../ui/StatusModal';
+import { supabase } from '../../lib/supabaseClient';
 
 const CATEGORIES: { value: ProductCategory; label: string }[] = [
 	{ value: 'clasicas', label: 'Clásicas' },
@@ -12,7 +13,9 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
 
 interface ProductFormProps {
 	initialData?: Product;
-	onSubmitProduct: (product: Omit<Product, 'id' | 'available'>) => Promise<void>;
+	onSubmitProduct: (
+		product: Omit<Product, 'id' | 'available'>,
+	) => Promise<void>;
 	onCancelEdit?: () => void;
 }
 
@@ -24,6 +27,8 @@ export function ProductForm({
 	const [name, setName] = useState('');
 	const [description, setDescription] = useState('');
 	const [image, setImage] = useState('');
+	const [imageFile, setImageFile] = useState<File | null>(null);
+	const [previewUrl, setPreviewUrl] = useState<string>('');
 	const [category, setCategory] = useState<ProductCategory>('clasicas');
 
 	const [price, setPrice] = useState<number | ''>('');
@@ -36,8 +41,11 @@ export function ProductForm({
 	});
 
 	const [formError, setFormError] = useState('');
-	const [modalState, setModalState] = useState<{ status: 'idle' | 'loading' | 'success' | 'error', message?: string }>({ status: 'idle' });
-	
+	const [modalState, setModalState] = useState<{
+		status: 'idle' | 'loading' | 'success' | 'error';
+		message?: string;
+	}>({ status: 'idle' });
+
 	const isLoading = modalState.status === 'loading';
 
 	useEffect(() => {
@@ -45,6 +53,7 @@ export function ProductForm({
 			setName(initialData.name);
 			setDescription(initialData.description);
 			setImage(initialData.image || '');
+			setPreviewUrl(initialData.image || '');
 			setCategory(initialData.category);
 
 			if (initialData.category === 'extras') {
@@ -84,10 +93,20 @@ export function ProductForm({
 		}));
 	}
 
+	function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+		if (file) {
+			setImageFile(file);
+			setPreviewUrl(URL.createObjectURL(file));
+		}
+	}
+
 	function resetForm() {
 		setName('');
 		setDescription('');
 		setImage('');
+		setImageFile(null);
+		setPreviewUrl('');
 		setCategory('clasicas');
 		setPrice('');
 		setPrices({
@@ -136,12 +155,43 @@ export function ProductForm({
 		}
 
 		setModalState({ status: 'loading' });
-		
+
+		let finalImage = image;
+
 		try {
+			if (imageFile) {
+				const fileExt =
+					imageFile.name
+						.split('.')
+						.pop()
+						?.replace(/[^a-zA-Z0-9]/g, '') || 'img';
+				const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
+				const { data: uploadData, error: uploadError } =
+					await supabase.storage
+						.from('products')
+						.upload(fileName, imageFile, {
+							cacheControl: '3600',
+							upsert: false,
+						});
+
+				if (uploadError) {
+					throw new Error(
+						`Error subiendo imagen: ${uploadError.message}`,
+					);
+				}
+
+				const { data: publicUrlData } = supabase.storage
+					.from('products')
+					.getPublicUrl(uploadData.path);
+
+				finalImage = publicUrlData.publicUrl;
+			}
+
 			await onSubmitProduct({
 				name: name.trim(),
 				description: description.trim(),
-				image: image.trim(),
+				image: finalImage.trim(),
 				category,
 				price: finalPrice,
 				prices: finalPrices,
@@ -150,14 +200,17 @@ export function ProductForm({
 			if (!initialData) {
 				resetForm();
 			}
-			setModalState({ 
-				status: 'success', 
-				message: initialData ? 'Los cambios se aplicaron correctamente.' : 'El producto se agregó exitosamente.' 
+			setModalState({
+				status: 'success',
+				message: initialData
+					? 'Los cambios se aplicaron correctamente.'
+					: 'El producto se agregó exitosamente.',
 			});
 		} catch (error: any) {
-			setModalState({ 
-				status: 'error', 
-				message: error.message || 'Ocurrió un problema, volvé a intentarlo.' 
+			setModalState({
+				status: 'error',
+				message:
+					error.message || 'Ocurrió un problema, volvé a intentarlo.',
 			});
 		}
 	}
@@ -168,12 +221,20 @@ export function ProductForm({
 		<section
 			className={`rounded-[var(--radius-card)] p-6 mb-10 transition-colors duration-300 ${isEditing ? 'ring-2 ring-[var(--color-primary)]' : ''}`}
 			style={{ background: 'var(--color-surface-container)' }}
-			aria-label={isEditing ? 'Formulario editar producto' : 'Formulario agregar producto'}
+			aria-label={
+				isEditing
+					? 'Formulario editar producto'
+					: 'Formulario agregar producto'
+			}
 		>
-			<StatusModal 
-				status={modalState.status} 
-				message={modalState.message} 
-				title={modalState.status === 'success' ? 'Trámite exitoso' : undefined}
+			<StatusModal
+				status={modalState.status}
+				message={modalState.message}
+				title={
+					modalState.status === 'success'
+						? 'Trámite exitoso'
+						: undefined
+				}
 				onOpenChange={(open) => {
 					if (!open && modalState.status !== 'loading') {
 						setModalState({ status: 'idle' });
@@ -236,7 +297,10 @@ export function ProductForm({
 						onChange={(e) => setName(e.target.value)}
 						placeholder='La Condena'
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						style={{
+							borderBottom:
+								'2px solid var(--color-outline-variant)',
+						}}
 						disabled={isLoading}
 					/>
 				</div>
@@ -254,7 +318,10 @@ export function ProductForm({
 						value={category}
 						onChange={handleCategoryChange}
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none cursor-pointer'
-						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						style={{
+							borderBottom:
+								'2px solid var(--color-outline-variant)',
+						}}
 						disabled={isLoading}
 					>
 						{CATEGORIES.map(({ value, label }) => (
@@ -270,19 +337,40 @@ export function ProductForm({
 						htmlFor='product-image'
 						className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
 					>
-						URL de imagen
+						Imagen del producto
 					</label>
-					<input
-						id='product-image'
-						name='image'
-						type='url'
-						value={image}
-						onChange={(e) => setImage(e.target.value)}
-						placeholder='https://...'
-						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
-						disabled={isLoading}
-					/>
+					<div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
+						{previewUrl && (
+							<div className='w-20 h-20 rounded-[var(--radius-button)] overflow-hidden flex-shrink-0 border border-[var(--color-outline-variant)]'>
+								<img
+									src={previewUrl}
+									alt='Vista previa'
+									className='w-full h-full object-cover'
+								/>
+							</div>
+						)}
+						<label className='flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-[var(--color-outline-variant)] rounded-[var(--radius-button)] cursor-pointer hover:bg-[var(--color-surface-container)] transition-colors w-full sm:w-auto flex-grow'>
+							<Upload
+								size={16}
+								className='text-[var(--color-on-surface-variant)]'
+							/>
+							<span className='text-sm text-[var(--color-on-surface-variant)] font-medium'>
+								{imageFile
+									? imageFile.name
+									: previewUrl
+										? 'Cambiar imagen'
+										: 'Seleccionar imagen desde tu dispositivo'}
+							</span>
+							<input
+								id='product-image'
+								type='file'
+								accept='image/*'
+								onChange={handleImageChange}
+								className='hidden'
+								disabled={isLoading}
+							/>
+						</label>
+					</div>
 				</div>
 
 				{category === 'extras' ? (
@@ -299,33 +387,63 @@ export function ProductForm({
 							type='number'
 							min={0}
 							value={price}
-							onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+							onChange={(e) =>
+								setPrice(
+									e.target.value === ''
+										? ''
+										: Number(e.target.value),
+								)
+							}
 							placeholder='4500'
 							className='w-full sm:w-1/2 px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none'
-							style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+							style={{
+								borderBottom:
+									'2px solid var(--color-outline-variant)',
+							}}
 							disabled={isLoading}
 						/>
 					</div>
 				) : (
 					<div className='sm:col-span-2 p-4 mt-2 rounded-[var(--radius-card)] bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]'>
 						<p className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)] mb-3 font-semibold'>
-							Variantes de Precios (ARS) *
+							Variantes de Precios ($) *
 						</p>
 						<div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
-							{['simple', 'doble', 'triple', 'cuadruple', 'quintuple'].map((size) => (
+							{[
+								'simple',
+								'doble',
+								'triple',
+								'cuadruple',
+								'quintuple',
+							].map((size) => (
 								<div key={size} className='flex flex-col gap-1'>
-									<label htmlFor={`price-${size}`} className='text-[10px] uppercase text-[var(--color-on-surface-variant)]'>
+									<label
+										htmlFor={`price-${size}`}
+										className='text-[10px] uppercase text-[var(--color-on-surface-variant)]'
+									>
 										{size}
 									</label>
 									<input
 										id={`price-${size}`}
 										type='number'
 										min={0}
-										value={prices[size as keyof ProductPrices] || ''}
-										onChange={(e) => handlePriceVariantChange(size as keyof ProductPrices, e.target.value)}
+										value={
+											prices[
+												size as keyof ProductPrices
+											] || ''
+										}
+										onChange={(e) =>
+											handlePriceVariantChange(
+												size as keyof ProductPrices,
+												e.target.value,
+											)
+										}
 										placeholder='0'
 										className='px-2 py-1.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container)] text-[var(--color-on-surface)] text-sm outline-none'
-										style={{ borderBottom: '1px solid var(--color-outline-variant)' }}
+										style={{
+											borderBottom:
+												'1px solid var(--color-outline-variant)',
+										}}
 										disabled={isLoading}
 									/>
 								</div>
@@ -346,10 +464,13 @@ export function ProductForm({
 						name='description'
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
-						placeholder='Doble medallón angus, cheddar ahumado...'
+						placeholder='Pan de papa, blend de carne, doble cheddar...'
 						rows={3}
 						className='px-3 py-2.5 rounded-[var(--radius-button)] bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface)] text-sm outline-none resize-none'
-						style={{ borderBottom: '2px solid var(--color-outline-variant)' }}
+						style={{
+							borderBottom:
+								'2px solid var(--color-outline-variant)',
+						}}
 						disabled={isLoading}
 					/>
 				</div>
@@ -392,3 +513,4 @@ export function ProductForm({
 		</section>
 	);
 }
+
