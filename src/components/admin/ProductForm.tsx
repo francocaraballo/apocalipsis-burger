@@ -337,7 +337,7 @@ export function ProductForm({
 						htmlFor='product-image'
 						className='text-xs uppercase tracking-wide text-[var(--color-on-surface-variant)]'
 					>
-						Imagen del producto
+						Imagen del producto (usar formato .webp)
 					</label>
 					<div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
 						{previewUrl && (
