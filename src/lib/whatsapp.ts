@@ -1,5 +1,4 @@
 import type { CartItem } from '../types';
-import envioData from '../data/envio.json';
 
 const WHATSAPP_NUMBER = '543425197766';
 
@@ -11,6 +10,7 @@ export interface DeliveryInfo {
 export function formatOrderForWhatsApp(
 	items: CartItem[],
 	delivery: DeliveryInfo,
+	shippingCost: number,
 	notes?: string,
 ): string {
 	if (items.length === 0) return '';
@@ -30,7 +30,7 @@ export function formatOrderForWhatsApp(
 		0,
 	);
 
-	const envio = delivery.method === 'delivery' ? envioData.costoEnvio : 0;
+	const envio = delivery.method === 'delivery' ? shippingCost : 0;
 	const total = subtotal + envio;
 
 	const notesLine = notes?.trim() ? `\n\n*NOTAS:* ${notes.trim()}` : '';
@@ -48,9 +48,15 @@ export function formatOrderForWhatsApp(
 export function sendWhatsAppOrder(
 	items: CartItem[],
 	delivery: DeliveryInfo,
+	shippingCost: number,
 	notes?: string,
 ): void {
-	const message = formatOrderForWhatsApp(items, delivery, notes);
+	const message = formatOrderForWhatsApp(
+		items,
+		delivery,
+		shippingCost,
+		notes,
+	);
 	const encodedMessage = encodeURIComponent(message);
 	window.open(
 		`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`,

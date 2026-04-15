@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAdminProducts } from '../hooks/useAdminProducts';
 import { ProductForm } from '../components/admin/ProductForm';
 import { ProductList } from '../components/admin/ProductList';
+import { ShippingCostForm } from '../components/admin/ShippingCostForm';
 
 export function AdminPage() {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,10 +27,17 @@ export function AdminPage() {
 		return () => subscription.unsubscribe();
 	}, []);
 
-	const { products, isLoading, handleAddProduct, handleEditProduct, handleDeleteProduct } =
-		useAdminProducts(isAuthenticated);
+	const {
+		products,
+		isLoading,
+		handleAddProduct,
+		handleEditProduct,
+		handleDeleteProduct,
+	} = useAdminProducts(isAuthenticated);
 
-	const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+	const [editingProduct, setEditingProduct] = useState<Product | undefined>(
+		undefined,
+	);
 
 	async function handleLogout() {
 		await supabase.auth.signOut();
@@ -90,9 +98,9 @@ export function AdminPage() {
 				</button>
 			</div>
 
+			<ShippingCostForm />
 
-
-			<ProductForm 
+			<ProductForm
 				initialData={editingProduct}
 				onSubmitProduct={async (product) => {
 					if (editingProduct) {

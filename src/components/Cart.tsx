@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { sendWhatsAppOrder } from '../lib/whatsapp';
-import envioData from '../data/envio.json';
+import { useSettings } from '../hooks/useSettings';
 
 type DeliveryMethod = 'delivery' | 'takeaway';
 
@@ -26,11 +26,14 @@ export function Cart({ isOpen, onClose }: CartProps) {
 	const [address, setAddress] = useState('');
 	const [notes, setNotes] = useState('');
 
+	const { value: shippingCost, isLoading: isShippingLoading } = useSettings(
+		'shipping_cost',
+		0,
+	); // O manejar el default que tenía envio.json
+
 	const subtotal = getTotal();
 	const envio =
-		deliveryMethod === 'delivery' && items.length > 0
-			? envioData.costoEnvio
-			: 0;
+		deliveryMethod === 'delivery' && items.length > 0 ? shippingCost : 0;
 	const total = subtotal + envio;
 
 	function handleSendOrder() {
@@ -42,7 +45,12 @@ export function Cart({ isOpen, onClose }: CartProps) {
 				? { method: 'takeaway' as const, address: 'Lavaisse 4050' }
 				: { method: 'delivery' as const, address: address.trim() };
 
-		sendWhatsAppOrder(items, deliveryInfo, notes);
+		sendWhatsAppOrder(
+			items,
+			deliveryInfo,
+			Number(shippingCost) || 0,
+			notes,
+		);
 	}
 
 	const canOrder =
@@ -528,6 +536,15 @@ export function Cart({ isOpen, onClose }: CartProps) {
 										>
 											GRATIS
 										</span>
+									) : isShippingLoading ? (
+										<span
+											style={{
+												color: 'var(--color-on-surface-variant)',
+												fontSize: '0.8rem',
+											}}
+										>
+											Calculando...
+										</span>
 									) : (
 										`$${envio.toLocaleString('es-AR')}`
 									)}
@@ -560,7 +577,11 @@ export function Cart({ isOpen, onClose }: CartProps) {
 						<button
 							id='send-whatsapp-order-btn'
 							onClick={handleSendOrder}
-							disabled={!canOrder}
+							disabled={
+								!canOrder ||
+								(deliveryMethod === 'delivery' &&
+									isShippingLoading)
+							}
 							className='w-full flex items-center justify-center gap-2 py-4 font-bold uppercase tracking-wider text-base transition-all duration-200 hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
 							style={{
 								fontFamily: 'var(--font-display)',
