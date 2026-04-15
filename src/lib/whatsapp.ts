@@ -1,7 +1,5 @@
 import type { CartItem } from '../types';
 
-const WHATSAPP_NUMBER = '543425197766';
-
 export interface DeliveryInfo {
 	method: 'delivery' | 'takeaway';
 	address: string;
@@ -49,6 +47,7 @@ export function sendWhatsAppOrder(
 	items: CartItem[],
 	delivery: DeliveryInfo,
 	shippingCost: number,
+	whatsappNumber: string,
 	notes?: string,
 ): void {
 	const message = formatOrderForWhatsApp(
@@ -59,7 +58,7 @@ export function sendWhatsAppOrder(
 	);
 	const encodedMessage = encodeURIComponent(message);
 	window.open(
-		`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`,
+		`https://wa.me/${whatsappNumber}?text=${encodedMessage}`,
 		'_blank',
 	);
 }

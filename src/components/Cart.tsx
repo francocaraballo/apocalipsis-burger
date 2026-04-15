@@ -31,6 +31,11 @@ export function Cart({ isOpen, onClose }: CartProps) {
 		0,
 	); // O manejar el default que tenía envio.json
 
+	const { value: whatsappNumber, isLoading: isWhatsappLoading } = useSettings(
+		'whatsapp_number',
+		'543425197766',
+	);
+
 	const subtotal = getTotal();
 	const envio =
 		deliveryMethod === 'delivery' && items.length > 0 ? shippingCost : 0;
@@ -49,6 +54,7 @@ export function Cart({ isOpen, onClose }: CartProps) {
 			items,
 			deliveryInfo,
 			Number(shippingCost) || 0,
+			String(whatsappNumber || '543425197766'),
 			notes,
 		);
 	}
@@ -580,7 +586,8 @@ export function Cart({ isOpen, onClose }: CartProps) {
 							disabled={
 								!canOrder ||
 								(deliveryMethod === 'delivery' &&
-									isShippingLoading)
+									isShippingLoading) ||
+								isWhatsappLoading
 							}
 							className='w-full flex items-center justify-center gap-2 py-4 font-bold uppercase tracking-wider text-base transition-all duration-200 hover:brightness-110 active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
 							style={{
